@@ -6,7 +6,7 @@ const HomeLayout: React.FC = ({ children }) => {
         <div className="container-fluid">
             <div className="row">
                 <div className="col-12">
-                    <Card className="w-100">
+                    <Card className="w-100 bg-light">
                         <CardHeader
                             className="font-weight-bold bg-dark text-white">
                                 Buscar canciones en Spotify:

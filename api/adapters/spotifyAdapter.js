@@ -12,15 +12,50 @@ const authConfig = {
     },
 }
 
-exports.findTracks = async (query, limit) => {
+exports.getTracksByName = async (query) => {
     try {
-        const token = await fetchToken();
-        const tasks = await fetchTracks(token);
-        return tasks;
+        const tracks = await fetchTracksByName(query);
+        return tracks;
     } catch (e) {
         console.log(e);
         throw Error(e.message);
     };
+}
+
+const fetchTracksByName = async (name) => {
+    try {
+        const token = await fetchToken();
+        const data = await fetchData(token, name);
+        if (!data.tracks) {
+            throw Error("No tracks found");
+        }
+        const mappedData = await mapData(data);
+        return mappedData;
+    } catch (e) {
+        throw Error(`Error on fetching tracks ${e.status}`);
+    }
+
+}
+
+const mapData = async (data) => {
+    let mappedData = {
+        tracks: [],
+    };
+    data.tracks.items.map(track => {
+        mappedData.tracks.push(track);
+    });
+    mappedData['limit'] = data.tracks.limit;
+    mappedData['offset'] = data.tracks.offset;
+    return mappedData;
+}
+
+const searchCallConfig = (token) => {
+    return {
+        method: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + token
+        },
+    }
 }
 
 const fetchToken = async () => {
@@ -30,12 +65,13 @@ const fetchToken = async () => {
         throw new Error(message);
     }
     const body = await response.json();
-    if (!body.access_token) throw new Error('No se encontró token');
+    if (!body.access_token) throw new Error('Error on token');
     return body.access_token;
 }
 
-const fetchTracks = async (token) => {
-    const response = await fetch('https://api.spotify.com/v1/search?q=Muse&type=track', searchConfig(token));
+const fetchData = async (token, query) => {
+    const encodedParams = `q=${encodeURIComponent(query)}&type=track&limit=20`;
+    const response = await fetch('https://api.spotify.com/v1/search?' + encodedParams, searchCallConfig(token));
     if (!response.ok) {
         const message = `Error at search call: ${response.status}`
         throw new Error(message);
@@ -44,11 +80,3 @@ const fetchTracks = async (token) => {
     return body;
 }
 
-const searchConfig = (token) => {
-    return {
-        method: 'GET',
-        headers: {
-            'Authorization': 'Bearer ' + token
-        },
-    }
-}
