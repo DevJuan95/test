@@ -1,5 +1,5 @@
 
-const SpotifyService = require('../services/spotifyService');
+const SpotifyService = require('../services/trackService');
 
 exports.tracksSearch = async (req, res) => {
   try {

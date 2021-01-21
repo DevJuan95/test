@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-var ApiController = require('../controllers/apiController');
+var ApiController = require('../controllers/trackController');
 
 /* GET api index. */
 router.get('/', ApiController.tracksSearch);

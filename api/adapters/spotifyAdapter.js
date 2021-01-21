@@ -35,7 +35,7 @@ const fetchToken = async () => {
 }
 
 const fetchTracks = async (token) => {
-    const response = await fetch('https://api.spotify.com/v1/search?q=Muse&type=track&limit=10', searchConfig(token));
+    const response = await fetch('https://api.spotify.com/v1/search?q=Muse&type=track', searchConfig(token));
     if (!response.ok) {
         const message = `Error at search call: ${response.status}`
         throw new Error(message);
@@ -43,6 +43,7 @@ const fetchTracks = async (token) => {
     const body = await response.json();
     return body;
 }
+
 const searchConfig = (token) => {
     return {
         method: 'GET',
