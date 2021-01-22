@@ -1,23 +1,126 @@
-import React,{useState, useEffect} from 'react';
-import { Track, OnSelectTrack } from '../types/SearchTypes';
-import ReactPaginate from 'react-paginate';
-import Tracks from '../components/Tracks';
+import React, { useState, useEffect, useRef } from 'react';
+import HomeLayout from '../components/layouts/HomeLayout';
+import { Data, Track } from '../types/SearchTypes';
+import Search from '../components/search/Search';
+import fetchData from '../api/fetchAPI';
+import Tracks from '../components/track/Tracks';
+import Pagination from '../components/pagination/Pagination';
+import TrackModal from '../components/track/TrackModal';
+import Swal from 'sweetalert2';
 
-type OwnProps = {
-    tracks: (Track)[],
-}
-type Props = OwnProps & OnSelectTrack;
-
-const TracksContainer: React.FC<Props> = (props) => {
-    const tracks = <Tracks tracks={props.tracks} onSelectTrack={props.onSelectTrack}/>
+const TracksContainer: React.FC = () => {
+    const initialData: Data = {
+        limit: 8,
+        offset: 0,
+        tracks: [],
+        total: 0,
+    }
+    const [data, setData] = useState<Data>(initialData);
+    const [query, setQuery] = useState<string>('');
+    const [offset, setOffset] = useState<number>(0);
+    const [currentPage, setCurrentPage] = useState<number>(0);
+    const [selectedTrack, setSelectedTrack] = useState<Track>();
+    const [showTrack, setShowTrack] = useState<boolean>(false);
+    const maximunOffset = 2000;
+    const [oldQuery, setOldQuery] = useState('');
+    /**
+     * on data changed handler;
+     */
+    useEffect(() => {
+        setCurrentPage(0);
+        setOffset(0);
+    }, [data]);
+    /**
+     * handles the search param
+     * @param evt React.ChangeEvent
+     */
+    const onChangeSearchHandler = (evt: React.ChangeEvent<HTMLInputElement>): void => {
+        const searchQuery = evt.target.value;
+        setQuery(searchQuery);
+    }
+    /**
+     * Fetch all the data from the server.
+     */
+    const fetchTracks = async () => {
+        try {
+            const response = await fetchData(query, data.limit, offset);
+            setData(response.data);
+            setOldQuery(query);
+        } catch (e) {
+            Swal.fire('Ups... algo salió mal', e.message, 'error');
+        }
+    }
+    /**
+     * Handler for the event onClick for seaching
+     */
+    const onClickSearchButtonHandler = async () => {
+        try {
+            await fetchTracks();
+        } catch (e) {
+            console.log(e.message);
+            Swal.fire('Ups... algo salió mal', e.message, 'error');
+        }
+    }
+    /**
+     * Handles the modal
+     */
+    const toggleModal = () => {
+        setShowTrack(!showTrack);
+    }
+    /**
+     * Handles the selection of one song
+     * @param track Track
+     */
+    const onSelectTrackHandler = (track: Track) => {
+        setSelectedTrack(track);
+        setShowTrack(true);
+    }
+    /**
+     * handler for click on pagination button
+     * @param option 
+     */
+    const paginationClickHandler = async (option: any) => {
+        const newOffset = Math.ceil(option.selected * data.limit);
+        try {
+            const response = await fetchData(oldQuery, data.limit, newOffset);
+            setData(response.data);
+            setOffset(newOffset);
+            setCurrentPage(option.selected);
+        } catch (e) {
+            Swal.fire('Ups... algo salió mal', e.message, 'error');
+        }
+    }
+    /**
+     * calculates the maximun pagecount 
+     * @param data Data
+     * @returns number
+     */
+    const calculatePageCount = (data: Data): number => {
+        if (data.total > (maximunOffset)) {
+            return Math.ceil(maximunOffset / data.limit);
+        } else {
+            return Math.ceil(data.total / data.limit);
+        }
+    }
+    const pagination = (
+        <Pagination
+            calculatePageCount={calculatePageCount}
+            paginationClickHandler={paginationClickHandler}
+            pageCount={calculatePageCount(data)}
+            currentPage={currentPage}
+        />);
     return (
-        <div className="mt-2 container-fluid">
-            <div className="row">
-                <div className="col-12">
-                    {tracks}
-                </div>
-            </div>
-        </div>
+        <HomeLayout>
+            <Search
+                changeHandler={onChangeSearchHandler}
+                submitHandler={onClickSearchButtonHandler}
+            />
+            <TrackModal show={showTrack} track={selectedTrack} toggle={toggleModal} />
+            <Tracks
+                tracks={data.tracks}
+                pagination={pagination}
+                onSelectTrack={onSelectTrackHandler} />
+        </HomeLayout>
     );
 }
 

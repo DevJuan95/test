@@ -1,13 +1,13 @@
 import * as React from 'react';
 import AppLayout from '../components/layouts/AppLayout';
-import HomeContainer from './HomeContainer';
+import TracksContainer from './TracksContainer';
 import './App.css';
 
 function App() {
   return (
     <div>
       <AppLayout>
-        <HomeContainer />
+        <TracksContainer />
       </AppLayout>
     </div>
   );

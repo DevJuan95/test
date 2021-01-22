@@ -3,6 +3,7 @@ export interface Data {
     limit: number;
     offset: number;
     tracks: (Track)[];
+    total: number;
 }
 export interface Track {
     id: string,

@@ -1,8 +1,6 @@
 const SpotifyAdapter = require('../../adapters/spotifyAdapter');
 
-exports.findByName = async (name) => {
-    let limit =  50;
-    let offset = 0;
+exports.findByName = async (name, limit, offset) => {
     try {
         const tracks = await SpotifyAdapter.getTracks(name,limit,offset);
         return tracks;

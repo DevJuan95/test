@@ -13,7 +13,6 @@ const authConfig = {
 }
 
 exports.getTracks = async (query,limit = 10,offset = 0) => {
-    limit = limit;
     try {
         const tracks = await fetchTracksFromSpotify(query,limit,offset);
         return tracks;
@@ -30,7 +29,7 @@ const fetchTracksFromSpotify = async (name,limit,offset) => {
         if (!data.tracks) {
             throw Error("No tracks found");
         }
-        const mappedData = await mapData(data);
+        const mappedData = mapData(data);
         return mappedData;
     } catch (e) {
         throw Error(`Error on fetching tracks ${e.status}`);
@@ -38,7 +37,7 @@ const fetchTracksFromSpotify = async (name,limit,offset) => {
 
 }
 
-const mapData = async (data) => {
+const mapData = (data) => {
     let mappedData = {
         tracks: [],
     };
@@ -47,6 +46,7 @@ const mapData = async (data) => {
     });
     mappedData['limit'] = data.tracks.limit;
     mappedData['offset'] = data.tracks.offset;
+    mappedData['total'] = data.tracks.total;
     return mappedData;
 }
 

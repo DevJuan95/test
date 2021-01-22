@@ -1,14 +1,14 @@
-const fetchData = async (query: string) => {
-    const encodedQuery = encodeParams(query);
-    const response = await fetch(encodedQuery, { method: 'GET', });
+const fetchData = async (query: string, limit:number, offset:number) => {
+    const encodedQuery = encodeParams(query, limit,offset);
+    const response = await fetch(encodedQuery, { method: 'GET'});
     if (response.ok) {
         const data = response.json();
         return data;
     } else {
-        throw new Error(`Respuesta invalida: ${response.status}`)
+        throw new Error(`Respuesta invalida desde el servidor: ${response.status}`)
     }
 
 }
-const encodeParams = (query: string): string => `/api/search?q=${encodeURIComponent(query)}`;
+const encodeParams = (query: string, limit:number, offset:number): string => `/api/search?q=${encodeURIComponent(query)}&limit=${limit}&offset=${offset}`;
 
 export default fetchData;
