@@ -12,9 +12,10 @@ const authConfig = {
     },
 }
 
-exports.getTracksByName = async (query) => {
+exports.getTracks = async (query,limit = 10,offset = 0) => {
+    limit = limit;
     try {
-        const tracks = await fetchTracksByName(query);
+        const tracks = await fetchTracksFromSpotify(query,limit,offset);
         return tracks;
     } catch (e) {
         console.log(e);
@@ -22,10 +23,10 @@ exports.getTracksByName = async (query) => {
     };
 }
 
-const fetchTracksByName = async (name) => {
+const fetchTracksFromSpotify = async (name,limit,offset) => {
     try {
         const token = await fetchToken();
-        const data = await fetchData(token, name);
+        const data = await fetchData(token, name, limit,offset);
         if (!data.tracks) {
             throw Error("No tracks found");
         }
@@ -69,8 +70,8 @@ const fetchToken = async () => {
     return body.access_token;
 }
 
-const fetchData = async (token, query) => {
-    const encodedParams = `q=${encodeURIComponent(query)}&type=track&limit=20`;
+const fetchData = async (token, query, limit, offset) => {
+    const encodedParams = `q=${encodeURIComponent(query)}&type=track&limit=${limit}&offset=${offset}`;
     const response = await fetch('https://api.spotify.com/v1/search?' + encodedParams, searchCallConfig(token));
     if (!response.ok) {
         const message = `Error at search call: ${response.status}`

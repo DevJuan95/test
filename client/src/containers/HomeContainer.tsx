@@ -13,7 +13,7 @@ const HomeContainer: React.FC = () => {
     }
     const [data, setData] = useState<Data>(initialData);
     const [query, setQuery] = useState('');
-    const [selectedTrack, setSelectedTrack] = useState<(Track)[]>([]);
+    const [selectedTrack, setSelectedTrack] = useState<Track>();
 
     const onChangeSearchHandler = (evt: React.ChangeEvent<HTMLInputElement>): void => {
         const searchQuery = evt.target.value;
@@ -24,14 +24,12 @@ const HomeContainer: React.FC = () => {
         try {
             const serverData = await fetchData(query);
             setData(serverData.data);
-            console.log(serverData.data);
         } catch (e) {
             console.log(e.message);
         }
     }
-
     const onClickSelectTrackHandler = (track: Track) => {
-        alert("hola mundo");
+        setSelectedTrack(track);
     }
 
     return (
