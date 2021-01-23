@@ -9,13 +9,12 @@ type OwnProps = {
 }
 type Props = OnSelectTrack & OwnProps;
 const Tracks: React.FC<Props> = (props: Props) => {
-
     return (
         <div className="mt-2 container-fluid">
             <div className="row">
                 <div className="col-12">
                     <div className="row">
-                        <CardGroup>
+                        <CardGroup className="w-100">
                             {props.tracks.map(track => {
                                 return (
                                     <TrackCard track={track} key={track.id} onSelectTrack={props.onSelectTrack} />

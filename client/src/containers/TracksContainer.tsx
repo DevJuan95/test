@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import HomeLayout from '../components/layouts/HomeLayout';
 import { Data, Track } from '../types/SearchTypes';
 import Search from '../components/search/Search';
@@ -6,7 +6,7 @@ import fetchData from '../api/fetchAPI';
 import Tracks from '../components/track/Tracks';
 import Pagination from '../components/pagination/Pagination';
 import TrackModal from '../components/track/TrackModal';
-import Swal from 'sweetalert2';
+import {triggerError} from '../helpers/error';
 
 const TracksContainer: React.FC = () => {
     const initialData: Data = {
@@ -32,7 +32,7 @@ const TracksContainer: React.FC = () => {
     }, [data]);
     /**
      * handles the search param
-     * @param evt React.ChangeEvent
+     * @param {React.ChangeEvent} evt 
      */
     const onChangeSearchHandler = (evt: React.ChangeEvent<HTMLInputElement>): void => {
         const searchQuery = evt.target.value;
@@ -47,7 +47,7 @@ const TracksContainer: React.FC = () => {
             setData(response.data);
             setOldQuery(query);
         } catch (e) {
-            Swal.fire('Ups... algo salió mal', e.message, 'error');
+            triggerError(e.message);
         }
     }
     /**
@@ -57,8 +57,7 @@ const TracksContainer: React.FC = () => {
         try {
             await fetchTracks();
         } catch (e) {
-            console.log(e.message);
-            Swal.fire('Ups... algo salió mal', e.message, 'error');
+            triggerError(e.message);
         }
     }
     /**
@@ -69,7 +68,7 @@ const TracksContainer: React.FC = () => {
     }
     /**
      * Handles the selection of one song
-     * @param track Track
+     * @param {Track} track 
      */
     const onSelectTrackHandler = (track: Track) => {
         setSelectedTrack(track);
@@ -87,7 +86,7 @@ const TracksContainer: React.FC = () => {
             setOffset(newOffset);
             setCurrentPage(option.selected);
         } catch (e) {
-            Swal.fire('Ups... algo salió mal', e.message, 'error');
+            triggerError(e.message);
         }
     }
     /**

@@ -1,31 +1,47 @@
 const fetch = require('node-fetch');
+const { CLIENT_ID, CLIENT_SECRET, SPOTIFY_TOKEN_URL, SPOTIFY_SEARCH_URL } = require('../config');
 
-const client_id = 'd2434174b0b64805ac38e676c29afc0c';
-const client_secret = 'e18ecaf890324e4eaa68cab06f19c37f';
-const authConfig = {
+const AUTHCONFIG = {
     method: 'POST',
     body: 'grant_type=client_credentials',
     headers: {
-        'Authorization': 'Basic ' + (new Buffer.from(client_id + ':' + client_secret).toString('base64')),
+        'Authorization': 'Basic ' + (new Buffer.from(CLIENT_ID + ':' + CLIENT_SECRET).toString('base64')),
         'Content-Type': 'application/x-www-form-urlencoded',
         'Accept': 'application/json',
     },
 }
+/**
+ * creates the configuration parameters.
+ * @param {string} token bearer token
+ */
+const searchConfig = (token) => {
+    return {
+        method: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + token
+        },
+    }
+}
 
-exports.getTracks = async (query,limit = 10,offset = 0) => {
+exports.getTracks = async (query, limit = 10, offset = 0) => {
     try {
-        const tracks = await fetchTracksFromSpotify(query,limit,offset);
+        const tracks = await tracksFromSpotify(query, limit, offset);
         return tracks;
     } catch (e) {
-        console.log(e);
         throw Error(e.message);
     };
 }
 
-const fetchTracksFromSpotify = async (name,limit,offset) => {
+/**
+ * handles the client credentials flow
+ * @param {string} name search parameter
+ * @param {number} limit top limit for pagination
+ * @param {number} offset lower limit for pagination
+ */
+const tracksFromSpotify = async (name, limit, offset) => {
     try {
         const token = await fetchToken();
-        const data = await fetchData(token, name, limit,offset);
+        const data = await fetchData(token, name, limit, offset);
         if (!data.tracks) {
             throw Error("No tracks found");
         }
@@ -34,9 +50,43 @@ const fetchTracksFromSpotify = async (name,limit,offset) => {
     } catch (e) {
         throw Error(`Error on fetching tracks ${e.status}`);
     }
-
 }
 
+/**
+ * gets the bearer token
+ */
+const fetchToken = async () => {
+    const response = await fetch(SPOTIFY_TOKEN_URL, AUTHCONFIG);
+    if (!response.ok) {
+        const message = `Spotify error: ${response.status}`
+        throw new Error(message);
+    }
+    const body = await response.json();
+    if (!body.access_token) throw new Error('Error on token');
+    return body.access_token;
+}
+
+/**
+ * handles the search call 
+ * @param {string} token bearer token
+ * @param {string} query search parameter
+ * @param {number} limit top limit for pagination
+ * @param {number} offset lower limit for paginatio
+ */
+const fetchData = async (token, query, limit, offset) => {
+    const encodedParams = `?q=${encodeURIComponent(query)}&type=track&limit=${limit}&offset=${offset}`;
+    const response = await fetch(SPOTIFY_SEARCH_URL + encodedParams, searchConfig(token));
+    if (!response.ok) {
+        const message = `Error at search call: ${response.status}`
+        throw new Error(message);
+    }
+    const body = await response.json();
+    return body;
+}
+
+/**
+ * @param {*} data 
+ */
 const mapData = (data) => {
     let mappedData = {
         tracks: [],
@@ -48,36 +98,5 @@ const mapData = (data) => {
     mappedData['offset'] = data.tracks.offset;
     mappedData['total'] = data.tracks.total;
     return mappedData;
-}
-
-const searchCallConfig = (token) => {
-    return {
-        method: 'GET',
-        headers: {
-            'Authorization': 'Bearer ' + token
-        },
-    }
-}
-
-const fetchToken = async () => {
-    const response = await fetch('https://accounts.spotify.com/api/token', authConfig);
-    if (!response.ok) {
-        const message = `Spotify error: ${response.status}`
-        throw new Error(message);
-    }
-    const body = await response.json();
-    if (!body.access_token) throw new Error('Error on token');
-    return body.access_token;
-}
-
-const fetchData = async (token, query, limit, offset) => {
-    const encodedParams = `q=${encodeURIComponent(query)}&type=track&limit=${limit}&offset=${offset}`;
-    const response = await fetch('https://api.spotify.com/v1/search?' + encodedParams, searchCallConfig(token));
-    if (!response.ok) {
-        const message = `Error at search call: ${response.status}`
-        throw new Error(message);
-    }
-    const body = await response.json();
-    return body;
 }
 
